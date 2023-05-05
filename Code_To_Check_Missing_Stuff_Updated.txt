@@ -1,0 +1,18 @@
+select distinct zzconsg_number,
+reference_number, 
+gpart,
+cm.vendor_code,
+bm.pc_code, 
+datepart(month,cast((to_timestamp(zpdn.zzdelivery_date, 'DD-MM-YYYY HH24:MI:SS')) as date)) as pay_out_month,
+worker_code,
+biker_code, 
+CASE WHEN upper(bm.associate) in ('NO','NA') and upper(bm.attached_to) in ('NO','NA') THEN 'BIKER COMMERCIALS'
+WHEN upper(bm.associate) not in ('NO','NA') and upper(bm.attached_to) not in ('NO','NA') THEN 'VEHICLE WITH DELIVERY BOY COMMERCIALS'
+WHEN upper(bm.associate) not in ('NO','NA') and upper(bm.attached_to) in ('NO','NA') THEN 'VEHICLE WITHOUT DELIVERY BOY COMMERCIALS'
+END as model,
+cm.type
+from dev_payout_report.zpdn_table_payout zpdn 
+inner join dev_payout_report.cluster_master cm on zpdn.gpart =cm.vendor_code
+left join dev_payout_report.biker_code_test bc on zpdn.zzconsg_number = bc.reference_number
+left join dev_payout_report.biker_master bm on bm.biker_code = bc.worker_code
+where zpdn.zzcons_status = 'DRS' 
